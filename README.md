@@ -2,7 +2,7 @@
   <img src="public/banner.jpg" alt="Zoo Explorer AI Banner" width="100%" />
 </p>
 
-<h1 align="center">🦁 Zoo Explorer AI</h1>
+<h1 align="center">Zoo Explorer AI</h1>
 <h3 align="center">Discover Wildlife with AI</h3>
 
 <p align="center">
