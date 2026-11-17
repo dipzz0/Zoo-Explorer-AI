@@ -18,6 +18,16 @@
   <img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge" alt="MIT License" />
 </p>
 
+<p align="center">
+  <a href="https://zooexplorer-ai.lovable.app" target="_blank">
+    <img src="https://img.shields.io/badge/🌐_Live_Demo-zooexplorer--ai.lovable.app-2ea44f?style=for-the-badge&logo=googlechrome&logoColor=white" alt="Live Demo" />
+  </a>
+</p>
+
+<p align="center">
+  🔗 <strong>Live App URL:</strong> <a href="https://zooexplorer-ai.lovable.app" target="_blank">https://zooexplorer-ai.lovable.app</a>
+</p>
+
 ---
 
 ## 📑 Table of Contents
@@ -41,6 +51,8 @@
 ---
 
 ## 🌿 Overview
+
+> 🌐 **Try the Live Application:** [https://zooexplorer-ai.lovable.app](https://zooexplorer-ai.lovable.app)
 
 **Zoo Explorer AI** transforms the traditional zoo experience into an engaging, educational, and tech-driven adventure. Designed from the ground up with a nature-inspired design language and high-performance full-stack React 19 architecture, it empowers zoo visitors to:
 
