@@ -2,7 +2,8 @@
   <img src="public/banner.jpg" alt="Zoo Explorer AI Banner" width="100%" />
 </p>
 
-# 🦁 Zoo Explorer AI — Discover Wildlife with AI
+<h1 align="center">🦁 Zoo Explorer AI</h1>
+<h3 align="center">Discover Wildlife with AI</h3>
 
 <p align="center">
   <strong>A modern, mobile-first zoo companion web application powered by AI animal vision recognition, voice-assisted interactive naturalists, smart ticketing, and interactive zone mapping.</strong>
