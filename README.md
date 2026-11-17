@@ -31,7 +31,9 @@
   - [Installation](#1-clone--install-dependencies)
   - [Environment Configuration](#2-environment-setup)
   - [Backend Setup (Bring Your Own Backend)](#3-backend-setup)
-  - [Running the App](#4-run-development-server)
+  - [AI Setup (Bring Your Own AI)](#4-ai-vision--naturalist-assistant-setup-bring-your-own-ai)
+  - [Running the App](#5-run-development-server)
+  - [Production Build](#6-build-for-production)
 - [Security & Privacy](#-security--privacy)
 - [License](#-license)
 
@@ -249,7 +251,133 @@ create table public.tickets (
 
 </details>
 
-### 4. Run Development Server
+### 4. AI Vision & Naturalist Assistant Setup (Bring Your Own AI)
+
+The frontend communicates with an AI backend via [`src/lib/recognize.ts`](src/lib/recognize.ts). Because no private API keys are bundled with this repository, you can attach any multimodal AI provider of your choice (**Google Gemini**, **OpenAI GPT-4o**, **Anthropic Claude**, or **Ollama**).
+
+#### How the AI Contract Works:
+
+The app makes two types of calls:
+
+1. **Wildlife Image Recognition**:
+   - **Payload**: `{ imageBase64: "data:image/jpeg;base64,...", mode: "basic" | "extended" }`
+   - **Expected Response**:
+     ```json
+     {
+       "name": "African Lion",
+       "kind": "animal",
+       "species": "Panthera leo",
+       "habitat": "African savannas and grasslands",
+       "diet": "Carnivore — large mammals",
+       "summary": "The lion is a large cat of the genus Panthera, native to Africa and India.",
+       "facts": [
+         "Pride groups are typically led by females.",
+         "A lion's roar can be heard up to 8 km away."
+       ],
+       "conservation": "Vulnerable",
+       "confidence": "high"
+     }
+     ```
+
+2. **Naturalist Interactive Q&A Chat**:
+   - **Payload**: `{ action: "chat", subject: { name, kind, species }, history: [...], question: "Where do they sleep?" }`
+   - **Expected Response**: `{ "reply": "Lions typically sleep for up to 20 hours a day in shady grasslands..." }`
+
+---
+
+#### ⚡ Quick Setup with Supabase Edge Functions + Google Gemini / OpenAI:
+
+If you are using Supabase, you can set up this function in under 3 minutes:
+
+1. **Initialize & Create Edge Function**:
+   ```bash
+   supabase functions new recognize
+   ```
+
+2. **Set your AI API Secret**:
+   ```bash
+   # If using Google Gemini:
+   supabase secrets set GEMINI_API_KEY="your-google-gemini-api-key"
+
+   # Or if using OpenAI:
+   supabase secrets set OPENAI_API_KEY="your-openai-api-key"
+   ```
+
+3. **Deploy the Function**:
+   ```bash
+   supabase functions deploy recognize --no-verify-jwt
+   ```
+
+<details>
+<summary><strong>Click to view sample Supabase Edge Function implementation (Deno / TypeScript)</strong></summary>
+
+```typescript
+// supabase/functions/recognize/index.ts
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
+
+serve(async (req) => {
+  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+
+  try {
+    const body = await req.json();
+    const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
+
+    // Mode 1: Naturalist Q&A
+    if (body.action === "chat") {
+      const { subject, history = [], question } = body;
+      const prompt = `You are a friendly zoo naturalist talking about a ${subject.kind} named ${subject.name}. Answer warmly and concisely in 2-3 sentences.`;
+
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{ role: "user", parts: [{ text: `${prompt}\nUser Question: ${question}` }] }]
+        })
+      });
+      const data = await response.json();
+      const reply = data.candidates?.[0]?.content?.parts?.[0]?.text ?? "I'm not sure, let me check with the zoo keepers!";
+      return new Response(JSON.stringify({ reply }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    // Mode 2: Wildlife Vision Identification
+    const { imageBase64 } = body;
+    const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, "");
+
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        contents: [{
+          parts: [
+            { text: "Identify this wild animal and return strict JSON with keys: name, kind (animal|bird|reptile|fish), species, habitat, diet, summary, facts (array), conservation, confidence." },
+            { inline_data: { mime_type: "image/jpeg", data: base64Data } }
+          ]
+        }],
+        generationConfig: { response_mime_type: "application/json" }
+      })
+    });
+
+    const data = await response.json();
+    const resultText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+    const result = JSON.parse(resultText);
+
+    return new Response(JSON.stringify(result), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+  } catch (err) {
+    return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: corsHeaders });
+  }
+});
+```
+
+</details>
+
+---
+
+### 5. Run Development Server
 
 ```bash
 npm run dev
@@ -257,7 +385,7 @@ npm run dev
 
 Open your browser and navigate to `http://localhost:5173` to start exploring!
 
-### 5. Build for Production
+### 6. Build for Production
 
 ```bash
 npm run build
