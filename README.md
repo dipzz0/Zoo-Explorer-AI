@@ -396,9 +396,10 @@ npm run preview
 
 ## 🔒 Security & Privacy
 
-- **Zero Credentials Policy**: No API keys, secret tokens, private keys, or production database credentials are committed to this repository.
-- **Environment Isolation**: All configuration values are loaded securely through `.env` files which are strictly excluded via `.gitignore`.
-- **Client-Side Data Safeguards**: Images scanned by users are compressed into lightweight client thumbnails to minimize network bandwidth and storage footprints.
+- **Client-Side Data Safeguards**: Images captured by users are compressed locally into lightweight thumbnails before transmission, minimizing data transfer and protecting visitor privacy.
+- **On-Demand Hardware Permissions**: Camera and microphone access are strictly user-initiated on demand for scans or voice queries, and are never accessed in the background.
+- **Native Web Speech Privacy**: Speech interaction utilizes the browser's built-in Web Speech API, executing on-device voice processing without third-party audio trackers.
+- **End-to-End Encrypted Transport**: All communication between client applications and backend endpoints occurs exclusively over secure HTTPS/TLS protocols.
 
 ---
 
